@@ -1,0 +1,46 @@
+---
+title: "Análise Exploratória"
+author: "Matheus Leal, Matheus Maciel, Mariana Mendes, Leandro Lima, Victor Hugo"
+date: "12 de novembro de 2018"
+output: html_document
+---
+
+```{r message=FALSE,  warning=FALSE}
+library(tidyverse)
+
+avaliacoes <- read_csv("../data/3-avaliacao-humana/avaliacoes-20180610.csv")
+reclamacoes <-  read_csv("../data/1-reclamacoes-selecionadas/reclamacoes-avaliadas.csv")
+```
+
+
+#####Adicionando colunas com o tamanho das reclamações, quantidade de exclamações e interrogações e a quantidade de letras em caixa alta.
+```{r message=FALSE,  warning=FALSE}
+reclamacoes <- reclamacoes %>% mutate(reclamacao.length = str_length(reclamacao))
+
+reclamacoes$numero.de.capslock <- str_count(reclamacoes$reclamacao, "\\b[A-Z]{2,}\\b")
+
+reclamacoes$numero.pontuacao <- str_count(reclamacoes$reclamacao, "\\!") + str_count(reclamacoes$reclamacao, "\\?")
+```
+
+
+**Tamanho das reclamações**
+```{r message=FALSE,  warning=FALSE}
+reclamacoes %>% 
+  filter(complete.cases(.)) %>% 
+  ggplot(aes(fill = orgao, x = reclamacao.length), na.rm = TRUE) + 
+  geom_histogram(binwidth = 50, na.rm = TRUE) + 
+  facet_grid(orgao ~ .)
+```
+
+
+**Quantidade de carácteres em caixa alta**
+```{r message=FALSE,  warning=FALSE}
+reclamacoes %>% 
+  ggplot(aes(x = numero.de.capslock), na.rm = TRUE) + 
+  geom_histogram()
+```
+
+```{r}
+
+```
+
