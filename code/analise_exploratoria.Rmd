@@ -47,6 +47,7 @@ reclamacoes %>%
   geom_histogram() + facet_grid(orgao ~ .)
 ```
 
+**Quantidade de avaliadores de uma mesma reclamação**
 ```{r message=FALSE,  warning=FALSE}
 avaliadores <- table(avaliacoes$`ID da reclamação`)
 contador <-integer(60)
