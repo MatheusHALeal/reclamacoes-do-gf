@@ -48,8 +48,12 @@ reclamacoes %>%
 ```
 
 ```{r message=FALSE,  warning=FALSE}
-
-
-
+avaliadores <- table(avaliacoes$`ID da reclamação`)
+contador <-integer(60)
+for (i in 1:length(avaliacoes$`Grau de insatisfação`)){
+  contador[avaliacoes$`ID da reclamação`[i]] <- contador[avaliacoes$`ID da reclamação`[i]] + 1
+}
+barplot(contador)
 ```
+
 
