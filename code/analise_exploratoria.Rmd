@@ -130,4 +130,12 @@ questoesMaximas
 questoesIguais <- sort(unique(questoesIguais))
 
 
+
+```
+**Range das avaliaçoes**
+```{r message=FALSE,  warning=FALSE}
+avaliacoes %>% group_by(`ID da reclamação`) %>% 
+ summarise(range = max(`Grau de insatisfação`) - min(`Grau de insatisfação`)) %>% plot()
+#%>%  filter(range > 2) %>% count() 
+
 ```
