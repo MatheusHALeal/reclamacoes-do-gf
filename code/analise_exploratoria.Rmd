@@ -57,4 +57,43 @@ for (i in 1:length(avaliacoes$`Grau de insatisfação`)){
 hist(contador)
 ```
 
+**Quantidade de avaliadores de uma mesma reclamação**
+```{r message=FALSE,  warning=FALSE}
+avaliadores <- table(avaliacoes$`ID da reclamação`)
+contadorMax <- 1
+contadorMin <- 1
+questoesMaximas <- 1:100
+questoesMinimas <- 1:100
+for (i in 1:length(avaliacoes$`Grau de insatisfação`)){
+  if(avaliacoes$`Grau de insatisfação`[i] == 5){
+    questoesMaximas[contadorMax] <- avaliacoes$`ID da reclamação`[i]
+    contadorMax <- contadorMax + 1
+  }
+}
 
+for (i in 1:length(avaliacoes$`Grau de insatisfação`)){
+  if(avaliacoes$`Grau de insatisfação`[i] == 5){
+    questoesMinimas[contadorMin] <- avaliacoes$`ID da reclamação`[i]
+    contadorMin <- contadorMin + 1
+  }
+}
+
+questoesMaximas
+
+questoesIguais <- integer(60)
+contador <- 1
+for (i in 1:length(questoesMaximas)){
+  for (j in 1:length(questoesMinimas)){
+    if (questoesMaximas[i] == questoesMinimas[j]){
+      questoesIguais[contador] <- questoesMaximas[i]
+      contador <- contador + 1
+    }
+  }
+}
+
+questoesMinimas
+questoesMaximas
+questoesIguais <- sort(unique(questoesIguais))
+
+
+```
