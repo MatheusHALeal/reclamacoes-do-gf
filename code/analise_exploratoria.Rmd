@@ -1,10 +1,15 @@
 ---
-title: "Análise Exploratória"
-author: "Matheus Leal, Matheus Maciel, Mariana Mendes, Leandro Lima, Victor Hugo"
-date: "12 de novembro de 2018"
+title: "Análise Exploratória sobre as reclamações do ReclameAqui e experimento humano do nível de insatisfação"
+authors: "Matheus Leal, Matheus Maciel, Mariana Mendes, Leandro Lima, Victor Hugo"
+date: "13 de novembro de 2018"
 output: html_document
 ---
 
+
+#####A amostra foi coletada no site ( https://www.reclameaqui.com.br/), uma página que serve para usuários enviarem reclamações/sugestões a órgãos do Governo Federal [São órgãos específicos] . Ao submeter uma mensagem, uma queixa é aberta, sendo fechada apenas quando a própria empresa entra em contato com o usuário que a enviou. Os dados coletados são os textos de cada uma das reclamações do [ano/mês - alguma data], além do nome da empresa para qual essa mensagem foi enviada.
+#####Foi realizado um experimento voluntário com os alunos da Universidade Federal de Campina Grande que estavam cursando a disciplina Metodologia Científica do semestre 2018.2 usando informações do ReclameAqui. A amostra foi dividida em grupos de 5, cada voluntário recebeu um conjunto que deveria analisar (podendo um conjunto ser avaliado por mais de uma pessoa), atribuindo, baseada numa escala de 1 a 5, o nível de insatisfação dos usuários, onde 5 é o nível máximo de insatisfação. 
+
+#####Carreganda as bibliotecas necessárias e nossos datasets
 ```{r message=FALSE,  warning=FALSE}
 library(tidyverse)
 
@@ -23,30 +28,59 @@ reclamacoes$numero.pontuacao <- str_count(reclamacoes$reclamacao, "\\!") + str_c
 ```
 
 
-**Tamanho das reclamações**
+###1. Explorando as reclamações
+
+**1.1 Tamanho das reclamações**
+
+#####Uma das características que achamos interessante nas reclamações foi seu tamanho. Desta forma, resolvemos visualizar como se distribuem as reclamações de acordo com o seu tamanho. Para tornar mais informativo, separamos as distribuições por órgão. Segue o gráfico:
+
 ```{r message=FALSE,  warning=FALSE}
 reclamacoes %>% 
   filter(complete.cases(.)) %>% 
   ggplot(aes(fill = orgao, x = reclamacao.length), na.rm = TRUE) + 
   geom_histogram(binwidth = 50, na.rm = TRUE) + 
-  facet_grid(orgao ~ .)
+  facet_grid(orgao ~ .) + labs(title = "Distribuição do tamanho das reclamações separadas por orgão" , x = "Tamanho das Reclamações", y = "Quantidade de Reclamações")
 ```
 
 
-**Quantidade de carácteres em caixa alta**
+#####Podemos que apenas a ANAC(Agência Nacional de Aviação Civil) recebeu reclamações com mais de dois mil caracteres, embora a concentração em ambas as distribuições seja entra 0 e 1000 caracteres.
+
+**1.2 Quantidade de carácteres em caixa alta**
+
+#####Outra coisa que nos chamou atenção foi o uso de caracteres em caixa alta presentes nas reclamações. Assim, no gráfico abaixo podemos observar a distribuição das reclamações de acordo com o número de caracteres em caixa alta.
+
 ```{r message=FALSE,  warning=FALSE}
 reclamacoes %>% 
   ggplot(aes(x = numero.de.capslock), na.rm = TRUE) + 
-  geom_histogram()
+  geom_histogram() + labs(title="Distribuição de reclamações de acordo com o número de caracteres em caixa alta", x = "Número de caracteres em caixa alta", y = "Número de Reclamações")
 ```
 
-**Quantidade de carácteres em caixa alta por orgão**
+
+#####Aqui, podemos notar que a quantidade de reclamações contendo entre 0 - 10 cracteres em caixa alta é a mais expressiva.
+
+**1.3 Quantidade de carácteres em caixa alta por orgão**
+
+#####Também queríamos ver como se comportava essa distribuição quando as separamos por órgão:
+
 ```{r message=FALSE,  warning=FALSE}
 reclamacoes %>% 
   ggplot(aes(fill = orgao, x = numero.de.capslock), na.rm = TRUE) + 
-  geom_histogram() + facet_grid(orgao ~ .)
+  geom_histogram() + facet_grid(orgao ~ .) + labs(title = "Distribuição de reclamações de acordo com o número de caracteres \n em caixa alta separadas por órgão" , x = "Tamanho das Reclamações", y = "Quantidade de Reclamações")
 ```
 
+#####Ambas as distribuições mostram maior concentração entre 0 e 10 caracteres em caixa alta, mas, ainda assim, a ANAC aparenta possuir reclamações com maior número de caracteres em caixa alta.
+
+**1.4 Uso de pontuação (! e ?) **
+
+#####Nos pareceu pertinente destacar o uso dos caracteres que indicam exclamação e interrogação
+
+```{r message=FALSE,  warning=FALSE}
+reclamacoes %>% 
+  ggplot(aes(x = numero.pontuacao), na.rm = TRUE) + 
+  geom_histogram() + labs(title = "Distribuição de reclamações de acordo com o número de caracteres \n de pontuação (! e ?)" , x = "Quantidade de pontos (exclamação e interrogação)", y = "Quantidade de Reclamações")
+```
+
+#####Da nossa amostra, podemos ver que boa parte das reclamações não possuem nenhum dos dois pontos. Mesmo assim, existe uma quantidade considerável que usou um ou dois pontos. Para as reclamações que possuem uma quantidade maior de pontos, seria interessante ver de que forma essa quantidade influencia na nota de insatisfação, mas, como não desejamos nos aprofundar nisso agora, deixaremos para um próximo momento.
 **Quantidade de avaliadores de uma mesma reclamação**
 ```{r message=FALSE,  warning=FALSE}
 avaliadores <- table(avaliacoes$`ID da reclamação`)
