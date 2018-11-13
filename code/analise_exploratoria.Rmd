@@ -40,7 +40,16 @@ reclamacoes %>%
   geom_histogram()
 ```
 
-```{r}
+**Quantidade de carácteres em caixa alta por orgão**
+```{r message=FALSE,  warning=FALSE}
+reclamacoes %>% 
+  ggplot(aes(fill = orgao, x = numero.de.capslock), na.rm = TRUE) + 
+  geom_histogram() + facet_grid(orgao ~ .)
+```
+
+```{r message=FALSE,  warning=FALSE}
+
+
 
 ```
 
