@@ -81,6 +81,13 @@ reclamacoes %>%
 ```
 
 #####Da nossa amostra, podemos ver que boa parte das reclamações não possuem nenhum dos dois pontos. Mesmo assim, existe uma quantidade considerável que usou um ou dois pontos. Para as reclamações que possuem uma quantidade maior de pontos, seria interessante ver de que forma essa quantidade influencia na nota de insatisfação, mas, como não desejamos nos aprofundar nisso agora, deixaremos para um próximo momento.
+
+**Avaliaçoes de um mesmo individuo**
+```{r message=FALSE,  warning=FALSE}
+avaliadores <- table(avaliacoes$Matricula)
+hist(avaliadores)
+```
+
 **Quantidade de avaliadores de uma mesma reclamação**
 ```{r message=FALSE,  warning=FALSE}
 avaliadores <- table(avaliacoes$`ID da reclamação`)
