@@ -1,0 +1,10 @@
+name: Publish Document
+title:
+username:
+account: rpubs
+server: rpubs.com
+hostUrl: rpubs.com
+appId: https://api.rpubs.com/api/v1/document/440237/5385e8743e5244f58f20feb52b689b45
+bundleId: https://api.rpubs.com/api/v1/document/440237/5385e8743e5244f58f20feb52b689b45
+url: http://rpubs.com/MatheusHALeal/440237
+when: 1542331556.18958
