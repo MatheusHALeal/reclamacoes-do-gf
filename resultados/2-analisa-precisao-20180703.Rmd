@@ -17,7 +17,7 @@ theme_set(theme_bw())
 ```{r carrega}
 
 reclamacoes = read_csv(here("data/3-avaliacao-humana/reclamacoes-avaliadas-20180703.csv"))
-sentimentos = read_csv(here("data/5-sentimentos/sentimento.csv"))
+sentimentos = read_csv(here("data/4-estimativa-automatica/sentimento.csv"))
 
 reclamacoes = reclamacoes %>% mutate(comprimento_reclamacao = str_length(reclamacao))
 ```
@@ -41,10 +41,9 @@ reclamacoes_l %>% View()
 Converte polaridades para escala 0-5
 
 ```{r}
-# Faça você mesmo. Crie a variável polaridade_normalizada
-# reclamacoes_l = reclamacoes_l %>% 
-#     group_by(lexico) %>% 
-#     mutate(polaridade_normalizada = ALGOAQUI)
+ reclamacoes_l = reclamacoes_l %>% 
+     group_by(lexico) %>% 
+     mutate(polaridade_normalizada = round(((4 * (polaridade - max(polaridade))) / (min(polaridade) - max(polaridade))) + 1))
 ```
 
 Calcula o erro (SSE) por reclamação
@@ -89,13 +88,14 @@ reclamacoes_l %>%
 Agora um modelo para responder sua pergunta.
 
 ```{r}
+library(GGally)
 #Cria variável dummy para preditor categórico
 reclamacoes_l = reclamacoes_l %>% mutate(lexico.dummy = if_else(lexico == "sentimento_sent", 1, 0))
 #Você precisa entender o que fez acima para interpretar sua regressão
 #Você pode também criar uma variável dummy para o órgao (se anac ou inss)
 
-# ggpairs(reclamacoes_l %>% select(<selecione as colulas que vc quer usar aqui>))
-# lm1 = lm(<seu modelo>)
+ggpairs(reclamacoes_l %>% select(insatisfacao, avaliadores, range.avaliacoes, comprimento_reclamacao, palavras, polaridade_normalizada, erro, lexico.dummy))
+lm1 = lm(erro ~ lexico.dummy, data = reclamacoes_l)
 ```
 
 **Dica** - o texto de resultado que queremos produzir é algo como: 
