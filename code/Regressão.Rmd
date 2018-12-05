@@ -1,0 +1,88 @@
+---
+title: "Regressão"
+author: "Matheus Leal"
+date: "4 de dezembro de 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+avaliacoes <- read_csv("reclamacoes-do-gf/data/3-avaliacao-humana/avaliacoes-20180610.csv")
+reclamacoes <-  read_csv("reclamacoes-do-gf/data/1-reclamacoes-selecionadas/reclamacoes-avaliadas.csv")
+sentimentos = read_csv("reclamacoes-do-gf/data/4-estimativa-automatica/sentimento.csv")
+```
+
+```{r cars}
+reclamacoes <- reclamacoes %>% mutate(reclamacao.length = str_length(reclamacao))
+reclamacoes$numero.de.capslock <- str_count(reclamacoes$reclamacao, "\\b[A-Z]{2,}\\b")
+reclamacoes$numero.pontuacao <- str_count(reclamacoes$reclamacao, "\\!") + str_count(reclamacoes$reclamacao, "\\?")
+
+reclamacoes = reclamacoes %>% 
+    left_join(sentimentos, by = "id")
+
+reclamacoes_l = reclamacoes %>%  
+    select(-palavras_op30, -palavras_sent) %>% 
+    gather(key = "lexico", 
+           value = "polaridade", 
+           sentimento_op30, sentimento_sent)
+```
+
+Converte polaridades para escala 0-5
+
+```{r}
+ reclamacoes_l = reclamacoes_l %>% 
+     group_by(lexico) %>% 
+     mutate(polaridade_normalizada = round(((4 * (polaridade - max(polaridade))) / (min(polaridade) - max(polaridade))) + 1)) %>% 
+    ungroup()
+```
+
+Calcula o erro (SSE) por reclamação
+
+```{r}
+reclamacoes_l = reclamacoes_l %>% 
+    mutate(erro = (mediana - polaridade_normalizada)**2)
+```
+
+
+###Como avaliar a eficácia dos métodos?  
+Uma medida interessante da eficiência desses métodos é calcular a soma dos erros ao quadrado (SSE) considerando o que o método definiu como a polaridade_normalizada e o que a avaliação humana definiu como a insatisfação.
+
+```{r}
+reclamacoes_l %>% 
+    ggplot(aes(x = mediana, y = polaridade_normalizada, group = mediana)) + 
+    geom_abline(slope = 1, intercept = 0, color = "grey") + 
+    geom_jitter(alpha = .7)  + 
+    facet_wrap(~ lexico)
+
+reclamacoes_l %>% 
+    ggplot(aes(x = mediana, y = erro, group = mediana)) + 
+    geom_jitter(alpha = .5)  +
+    # geom_boxplot() + 
+    facet_wrap(~ lexico)
+```
+
+
+```{r}
+library(GGally)
+reclamacoes_l = reclamacoes_l %>% mutate(lexico.dummy = if_else(lexico == "sentimento_sent", 1, 0))
+
+reclamacoes_l %>%  names()
+
+rec <- reclamacoes_l %>%
+  select(-lexico,
+         -orgao,
+         -titulo,
+         -reclamacao,
+         -id)
+
+corr <- rec %>% cor() %>% round(2)
+
+corr %>%  ggcorr(label_size = 3, label = TRUE, label_color = "black", hjust = 0.925, size = 3.5, angle = -45)
+```
+
+```{r}
+modelo = lm(mediana ~ reclamacao.length, polaridade_normalizada, numero.pontuacao, data = reclamacoes_l)
+tidy(modelo, conf.int = TRUE, conf.level = 0.95)
+glance(modelo)
+```
+
