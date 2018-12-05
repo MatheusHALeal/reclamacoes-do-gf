@@ -173,6 +173,14 @@ corr %>%  ggcorr(label_size = 3, label = TRUE, label_color = "black", hjust = 0.
 
 #####As únicas variáveis que apresentam uma forte correlação são relativas ao tamanho das reclamações e seus caracteres, dessa forma não podemos concluir muito sobre a influência das variáveis entre si.
 
+
+###3. Explorando os léxicos
+
+
+
+**3.1 léxicos vs avaliação humana**
+
+######Neste ponto iremos iniciar a utilização dos léxicos em comparação com a avaliação humana,por isto iremos dar um join das nossas avalições já criadas e inserir as colunas "lexico" e "polaridade".
 ```{r}
 reclamacoes = reclamacoes %>% 
     left_join(sentimentos, by = "id")
@@ -186,7 +194,7 @@ reclamacoes_l = reclamacoes %>%
 reclamacoes_l %>% View()
 ```
 
-Converte polaridades para escala 0-5
+#####Precisamos normalizar nossa polaridade para uma escola de 0-5 permitando, assim, que possamos utiliza-lá posteriormente. 
 
 ```{r}
  reclamacoes_l = reclamacoes_l %>% 
@@ -194,11 +202,15 @@ Converte polaridades para escala 0-5
      mutate(polaridade_normalizada = round(((4 * (polaridade - max(polaridade))) / (min(polaridade) - max(polaridade))) + 1))
 ```
 
+#####Atribuindo ao nosso erro o volar proveniente do calculo realizado entre a mediana e a polarizada normalizada criada anteriormente.
 ```{r}
 reclamacoes_l = reclamacoes_l %>% 
     mutate(erro = (mediana - polaridade_normalizada)**2)
 
 ```
+
+
+#####Agora queremos ver a difença contida entre as avaliações realizadas a partir do experimento humano e as realizadas utlizando os léxicos
 
 ```{r message=FALSE,  warning=FALSE}
 reclamacoes_l %>% 
@@ -212,6 +224,15 @@ reclamacoes_l %>%
   geom_histogram() + labs(title = "Avaliação a partir dos léxicos" , x = "Grau de Insatisfação", y = "Quantidade de Reclamações")
 ```
 
+#####Com isto, podemos observar que as avaliações realizadas a partir dos lexicos possuem uma maior concentração de avaliações com grau de insatisfação 4,quando comparadas as realizadas a partir do experimento humano, que se mantém bem mais distruibuidas. 
+
+
+**3.2 avaliações por agência**
+
+#####Agora estamos interessados em saber como cada reclamação das agências (ANAC,INSS) ficaram classificadas utilizando os léxicos e, assim, poder compara-lás.
+
+
+
 ```{r message=FALSE,  warning=FALSE}
 reclamacoes_l %>%
   group_by(polaridade_normalizada) %>%
@@ -221,7 +242,7 @@ reclamacoes_l %>%
   arrange(usos) %>%
   #slice(1:27) %>%
   ggplot(aes(x = polaridade_normalizada, y = usos,fill = polaridade_normalizada))  + guides(fill=FALSE) +
-  geom_col() + labs(title = "Gastos dos parlamentares no exterior agrupados por estado" , x = "Estados", y = "Gastos(R$)")
+  geom_col() + labs(title = "Avaliações da agência ANAC" , x = "Grau de insatisfação", y = "Quantidade de Reclamações")
 ```
 
 ```{r message=FALSE,  warning=FALSE}
@@ -233,5 +254,10 @@ reclamacoes_l %>%
   arrange(usos) %>%
   #slice(1:27) %>%
   ggplot(aes(x = polaridade_normalizada, y = usos,fill = polaridade_normalizada))  + guides(fill=FALSE) +
-  geom_col() + labs(title = "Gastos dos parlamentares no exterior agrupados por estado" , x = "Estados", y = "Gastos(R$)")
+  geom_col() + labs(title = "Avaliações da agência INSS" , x = "Grau de insatisfação", y = "Quantidade de Reclamações")
 ```
+
+
+#####Como podemos ver, ambas tiveram concentração de reclamações com grau de insatisfação 4. Também pudemos notar uma semelhança muito grande entre o grau de insatisfação, tendo apenas algumas exeções na agência INSS que possui criticas com grau 1 e 2, e a ANAC não.
+
+
