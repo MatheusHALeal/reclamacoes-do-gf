@@ -35,6 +35,7 @@ reclamacoes$numero.pontuacao <- str_count(reclamacoes$reclamacao, "\\!") + str_c
 
 #####Uma das características que achamos interessante nas reclamações foi seu tamanho. Desta forma, resolvemos visualizar como se distribuem as reclamações de acordo com o seu tamanho. Para tornar mais informativo, separamos as distribuições por órgão. Segue o gráfico:
 
+
 ```{r message=FALSE,  warning=FALSE}
 reclamacoes %>% 
   filter(complete.cases(.)) %>% 
@@ -59,6 +60,7 @@ reclamacoes %>%
 
 #####Aqui, podemos notar que a quantidade de reclamações contendo entre 0 - 10 cracteres em caixa alta é a mais expressiva.
 
+
 **1.3 Quantidade de carácteres em caixa alta por orgão**
 
 #####Também queríamos ver como se comportava essa distribuição quando as separamos por órgão:
@@ -71,6 +73,7 @@ reclamacoes %>%
 
 #####Ambas as distribuições mostram maior concentração entre 0 e 10 caracteres em caixa alta, mas, ainda assim, a ANAC aparenta possuir reclamações com maior número de caracteres em caixa alta.
 
+
 **1.4 Uso de pontuação (! e ?) **
 
 #####Nos pareceu pertinente destacar o uso dos caracteres que indicam exclamação e interrogação
@@ -82,6 +85,93 @@ reclamacoes %>%
 ```
 
 #####Da nossa amostra, podemos ver que boa parte das reclamações não possuem nenhum dos dois pontos. Mesmo assim, existe uma quantidade considerável que usou um ou dois pontos. Para as reclamações que possuem uma quantidade maior de pontos, seria interessante ver de que forma essa quantidade influencia na nota de insatisfação, mas, como não desejamos nos aprofundar nisso agora, deixaremos para um próximo momento.
+
+
+###2. Explorando as avaliações
+```{r}
+avaliacoes <- avaliacoes %>% 
+              select(avaliador = `Matricula`, 
+                      id = `ID da reclamação`, 
+                       insatisfacao = `Grau de insatisfação`)
+
+```
+
+
+
+#####Para garantir que não existem valores não permitidos na avaliação, iremos filtrar qualquer avaliação que não esteja entre 1 e 5 de grau de insatisfação
+```{r}
+avaliacoes %>% 
+  filter((id %in% 1:5 ))
+```
+
+
+
+**2.1 - Quantidade de avaliadores de uma mesma reclamação**
+
+#####Primeiro, vamos extrair dos nosso dados algumas medidas que podem ser interessantes. Como queremos saber a quantidade de avaliadores cada reclamação teve, podemos ter uma noção extraindo sua média e mediana.
+
+
+```{r}
+avaliacoes %>% 
+  group_by(id) %>% 
+  count() %>%
+  ungroup() %>% 
+  summarise(media = mean(n), 
+            mediana = median(n))
+```
+
+#####Sabendo que a mediana é de 5 avaliadores e a média é consideravelmente próxima da mediana, podemos concluir que as reclamações tiveram uma quantidade semelhante de avaliadores.
+#####Para ver isso melhor, podemos plotar um gráfico que nos mostra a distribuição das reclamações de acordo com a quantidade de avaliações recebidas.
+```{r}
+avaliacoes %>% 
+  group_by(id) %>% 
+  count() %>% 
+  ggplot(aes("Reclamacoes", n)) + 
+  geom_jitter(width = .05, alpha = .7)
+```
+
+#####Então podemos ver que as reclamações que receberam 5 ou 7 avaliadores são mais numerosas que as reclamações que receberam 3 avaliações.
+
+**2.2 - Avaliaçoes de um mesmo individuo**
+
+#####Agora que sabemos como se deu as avaliações das reclamações, queremos saber se podemos confiar nas avaliações dos indivíduos. Embora não possamos saber com certeza se a avaliação foi feita da forma correta, podemos ver se um mesmo indivíduo atribuiu a mesma notas às reclamações extraindo a variância das suas avaliações.
+
+```{r}
+avaliacoes %>% 
+  group_by(avaliador) %>% 
+  summarise(variancia = var(insatisfacao)) %>% 
+  ggplot(aes(x=avaliador, y=variancia, colour = avaliador)) + geom_point() +
+  geom_jitter(height = 0.05, alpha = .4) 
+```
+
+
+#####Considerando nossa amostra, os indivíduos mostraram uma variância aceitável na atribuição das notas. Isso pode indicar que as avaliações foram feitas de forma correta.
+**2.3 - Range das avaliaçoes**
+
+#####Para garantir a confiabilidade das avaliações, podemos ver se existem muitas reclamações com avaliações extremas, ou seja, por exemplo, se uma mesma reclamação recebeu grau 1 de insatisfação de um avaliador e grau 5 de outro avaliador, isso pode indicar que a avaliação não foi bem feita. Para isso, devemos observar o range (diferença entre a maior avaliação e a menor) das avaliações de cada reclamação.
+```{r}
+avaliacoes %>% group_by(id) %>% 
+  summarise(range = max(insatisfacao) - min(insatisfacao),
+            mediana = median(insatisfacao)) %>% 
+  ggplot(aes(x=id, y=range, colour = id)) + geom_point() +
+  geom_jitter(height = 0.05, alpha = .4)
+```
+
+#####Embora ainda apresente um número considerável de reclamações com o range de suas avaliações 3, a maior parte figura com 1 ou 2 de range. Novamente, considerando nossa amostra, isso nos dá um pouco mais de confiança quanto às avaliações humanas.
+**3 - Correlação das variáveis**
+
+#####Apenas para completar nossa análise exploratória, podemos ver se existem relações fortes entre elas.
+```{r}
+library(GGally)
+
+rec <- reclamacoes %>% select(reclamacao.length, numero.de.capslock, mediana, numero.pontuacao)
+
+corr = rec[, 0:4] %>%  cor() %>%  round(2)
+
+corr %>%  ggcorr(label_size = 3, label = TRUE, label_color = "black", hjust = 0.925, size = 3.5, angle = -45)
+```
+
+#####As únicas variáveis que apresentam uma forte correlação são relativas ao tamanho das reclamações e seus caracteres, dessa forma não podemos concluir muito sobre a influência das variáveis entre si.
 
 ```{r}
 reclamacoes = reclamacoes %>% 
@@ -106,7 +196,7 @@ Converte polaridades para escala 0-5
 
 ```{r}
 reclamacoes_l = reclamacoes_l %>% 
-    mutate(erro = (insatisfacao - polaridade_normalizada)**2)
+    mutate(erro = (mediana - polaridade_normalizada)**2)
 
 ```
 
